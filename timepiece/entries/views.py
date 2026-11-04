@@ -205,14 +205,18 @@ def toggle_pause(request):
 
 
 @permission_required('entries.change_entry')
+@transaction.commit_on_success
 def create_edit_entry(request, entry_id=None):
     if entry_id:
+        # Lock the row so its owner and status cannot change between this
+        # authorization check and the form save below.
+        entries = Entry.no_join.select_for_update()
+        if not request.user.has_perm('entries.view_payroll_summary'):
+            entries = entries.filter(user=request.user,
+                    status=Entry.UNVERIFIED)
         try:
-            entry = Entry.no_join.get(pk=entry_id)
+            entry = entries.get(pk=entry_id)
         except Entry.DoesNotExist:
-            entry = None
-        if not entry or not (entry.is_editable or
-                request.user.has_perm('entries.view_payroll_summary')):
             raise Http404
     else:
         entry = None
