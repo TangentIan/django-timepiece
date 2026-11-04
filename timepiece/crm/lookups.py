@@ -1,15 +1,34 @@
 from collections import namedtuple
 
 from django.contrib.auth.models import User
+from django.http import HttpResponseForbidden
 from django.utils.safestring import mark_safe
 
 from selectable.base import LookupBase
 from selectable.base import ModelLookup
+from selectable.decorators import login_required, results_decorator
 from selectable.registry import registry
 
 from timepiece.crm.models import Project, Business
 
 
+def permission_required(*perms):
+    """Lookup decorator requiring the user to have at least one of perms.
+
+    Each lookup is reachable directly at its selectable URL, so it must
+    enforce the permissions of every page that embeds it.
+    """
+    @results_decorator
+    def check(request):
+        user = getattr(request, 'user', None)
+        if user is None or not any(user.has_perm(perm) for perm in perms):
+            return HttpResponseForbidden()
+    return check
+
+
+@login_required
+@permission_required('crm.view_project', 'auth.view_user',
+        'crm.add_projectrelationship', 'entries.view_entry_summary')
 class ProjectLookup(ModelLookup):
     model = Project
     search_fields = ('name__icontains', 'business__name__icontains',
@@ -23,6 +42,8 @@ class ProjectLookup(ModelLookup):
         return project.name if project else ''
 
 
+@login_required
+@permission_required('crm.add_project', 'crm.change_project')
 class BusinessLookup(ModelLookup):
     model = Business
     search_fields = ('name__icontains', 'short_name__icontains')
@@ -35,6 +56,8 @@ class BusinessLookup(ModelLookup):
         return business.name if business else ''
 
 
+@login_required
+@permission_required('crm.view_project', 'crm.add_projectrelationship')
 class UserLookup(ModelLookup):
     model = User
     search_fields = ('username__icontains', 'first_name__icontains',
@@ -51,6 +74,7 @@ class UserLookup(ModelLookup):
         return user.get_name_or_username() if user else ''
 
 
+@login_required
 class QuickLookup(LookupBase):
 
     def __init__(self, *args, **kwargs):
