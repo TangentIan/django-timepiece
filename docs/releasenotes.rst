@@ -15,6 +15,8 @@ Release Notes
 * Require `crm.change_business` permission rather than `crm.edit_business`
   permission for EditUser view.
 * Don't use transaction.commit_on_success on ViewUser or ViewProject views.
+* Require login, and the permissions of the pages that use them, for the
+  user, project, business, and quick search selectable lookups.
 
 *Code Quality*
 
