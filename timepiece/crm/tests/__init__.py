@@ -6,5 +6,7 @@ from .test_project_timesheet import TestProjectTimesheet
 from .test_quick_search import TestQuickSearchView
 from .test_relationships import (TestAddUserToProject, TestAddProjectToUser,
         TestEditRelationship, TestDeleteRelationship)
+from .test_selectable_lookups import (AnonymousSelectableDirectoryTests,
+        PermissionedSelectableDirectoryTests)
 from .test_users import (TestAddToUserClass, TestCreateUser, TestDeleteUser,
         TestEditUser, TestListUsers, TestViewUser, TestEditSettings)
